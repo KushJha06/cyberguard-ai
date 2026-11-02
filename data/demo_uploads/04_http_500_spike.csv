@@ -1,0 +1,11 @@
+timestamp,source,category,event_type,host,service,message,status_code,route
+2026-10-02T09:03:00Z,nginx,application,http_request,web-01,checkout,POST checkout returned 500,500,/checkout
+2026-10-02T09:03:01Z,nginx,application,http_request,web-01,checkout,POST checkout returned 500,500,/checkout
+2026-10-02T09:03:02Z,nginx,application,http_request,web-01,checkout,POST checkout returned 502,502,/checkout
+2026-10-02T09:03:03Z,nginx,application,http_request,web-01,checkout,POST checkout returned 500,500,/checkout
+2026-10-02T09:03:04Z,nginx,application,http_request,web-01,checkout,POST checkout returned 503,503,/checkout
+2026-10-02T09:03:05Z,nginx,application,http_request,web-01,checkout,POST checkout returned 200,200,/checkout
+2026-10-02T09:03:06Z,nginx,application,http_request,web-01,checkout,POST checkout returned 200,200,/checkout
+2026-10-02T09:03:07Z,nginx,application,http_request,web-01,checkout,POST checkout returned 201,201,/checkout
+2026-10-02T09:03:08Z,nginx,application,http_request,web-01,checkout,POST checkout returned 200,200,/checkout
+2026-10-02T09:03:09Z,nginx,application,http_request,web-01,checkout,POST checkout returned 204,204,/checkout

@@ -1,0 +1,2 @@
+timestamp,source,category,event_type,host,service,message,service_state
+2026-10-02T09:02:00Z,systemd,system,service_status,web-01,nginx,nginx entered failed state,failed

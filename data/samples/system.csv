@@ -1,0 +1,2 @@
+timestamp,source,category,event_type,host,service,message,disk_used_percent,mount
+2026-10-02T09:00:00Z,node-exporter,system,disk_usage,web-01,,Root filesystem usage high,96.4,/

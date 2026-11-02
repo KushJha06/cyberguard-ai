@@ -1,0 +1,4 @@
+timestamp,source,category,event_type,host,service,message
+2026-10-02T09:04:00Z,orders-api,application,exception,api-01,orders,Timeout acquiring connection from database pool
+2026-10-02T09:04:10Z,orders-api,application,exception,api-01,orders,Connection pool exhausted while processing request
+2026-10-02T09:04:20Z,orders-api,application,exception,api-01,orders,Pool timeout waiting for database connection

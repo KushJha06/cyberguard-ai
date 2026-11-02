@@ -1,0 +1,4 @@
+# Intentionally insecure sample for demonstration only
+PermitRootLogin yes
+PasswordAuthentication yes
+PermitEmptyPasswords no

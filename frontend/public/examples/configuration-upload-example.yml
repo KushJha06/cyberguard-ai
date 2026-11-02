@@ -1,0 +1,11 @@
+# Safe CyberGuard configuration-analysis example.
+# This file intentionally contains findings and no real credentials.
+services:
+  web:
+    image: example/web:latest
+    privileged: true
+    environment:
+      DEBUG: "true"
+      API_TOKEN: "replace-with-secret-manager-reference"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock

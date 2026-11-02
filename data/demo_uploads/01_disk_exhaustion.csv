@@ -1,0 +1,2 @@
+timestamp,source,category,event_type,host,service,message,disk_used_percent,mount
+2026-10-02T09:00:00Z,node-exporter,system,disk_usage,database-01,,Database filesystem critically high,98.6,/var/lib/postgresql

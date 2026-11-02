@@ -1,0 +1,15 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "cyberguard-example-plugin"
+version = "0.1.0"
+requires-python = ">=3.11"
+dependencies = ["cyberguard-ai>=0.6,<0.7"]
+
+[project.entry-points."cyberguard.detections"]
+example_high_cpu = "cyberguard_example_plugin.rule:HighCPURule"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/cyberguard_example_plugin"]

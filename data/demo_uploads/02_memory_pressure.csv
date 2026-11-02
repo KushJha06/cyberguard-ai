@@ -1,0 +1,2 @@
+timestamp,source,category,event_type,host,service,message,memory_used_percent
+2026-10-02T09:01:00Z,node-exporter,system,memory_usage,api-01,,Memory utilization sustained above threshold,96.8

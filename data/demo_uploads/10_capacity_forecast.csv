@@ -1,0 +1,2 @@
+timestamp,source,category,event_type,host,service,message,disk_used_percent,mount,growth_percent_per_hour,projected_minutes_to_full
+2026-10-02T09:10:00Z,cyberguard-agent,system,disk_usage,storage-01,,Filesystem growing rapidly,84,/data,10.7,90

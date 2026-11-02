@@ -1,0 +1,2 @@
+timestamp,source,category,event_type,host,service,message,path,action,sha256
+2026-10-02T09:09:00Z,wazuh,file_integrity,file_change,web-01,,Sensitive authentication file modified,/etc/passwd,modified,4f9f2cab-demo-sha256

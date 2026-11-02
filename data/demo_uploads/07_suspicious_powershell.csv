@@ -1,0 +1,2 @@
+timestamp,source,category,event_type,host,service,message,command_line,parent_process,user
+2026-10-02T09:08:00Z,sysmon,application,process_start,windows-01,powershell,PowerShell started with encoded command,powershell.exe -EncodedCommand SQBFAFgA,winword.exe,analyst
