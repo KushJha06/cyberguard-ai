@@ -4,8 +4,10 @@ from cyberguard.ingestion.csv_adapter import CSVAdapter
 
 def test_normalized_csv(tmp_path):
     path = tmp_path / "events.csv"
-    path.write_text("timestamp,source,category,event_type,host,message,disk_used_percent,mount\n"
-        "2026-10-02T10:00:00Z,monitor,system,disk_usage,db-1,disk high,96,/data\n")
+    path.write_text(
+        "timestamp,source,category,event_type,host,message,disk_used_percent,mount\n"
+        "2026-10-02T10:00:00Z,monitor,system,disk_usage,db-1,disk high,96,/data\n"
+    )
     event = CSVAdapter().parse(path)[0]
     assert event.category == EventCategory.SYSTEM
     assert event.attributes["disk_used_percent"] == 96
@@ -13,8 +15,10 @@ def test_normalized_csv(tmp_path):
 
 def test_common_aliases_and_semicolon_delimiter(tmp_path):
     path = tmp_path / "application-export.csv"
-    path.write_text("Date Time;Hostname;Application;Description;HTTP Status\n"
-        "2026-10-02 10:00:00;web-1;checkout;request failed;500\n")
+    path.write_text(
+        "Date Time;Hostname;Application;Description;HTTP Status\n"
+        "2026-10-02 10:00:00;web-1;checkout;request failed;500\n"
+    )
     event = CSVAdapter().parse(path)[0]
     assert event.host == "web-1"
     assert event.service == "checkout"
@@ -24,8 +28,10 @@ def test_common_aliases_and_semicolon_delimiter(tmp_path):
 
 def test_loghub_structured_columns_map_to_error_detection(tmp_path):
     path = tmp_path / "Apache_2k.log_structured.csv"
-    path.write_text("LineId,Date,Time,Level,Component,Content,EventId,EventTemplate\n"
-        "1,2026-10-02,10:00:00,ERROR,web,Connection refused while opening upstream,E1,Connection refused <*>\n")
+    path.write_text(
+        "LineId,Date,Time,Level,Component,Content,EventId,EventTemplate\n"
+        "1,2026-10-02,10:00:00,ERROR,web,Connection refused while opening upstream,E1,Connection refused <*>\n"
+    )
     event = CSVAdapter().parse(path)[0]
     assert event.message == "Connection refused while opening upstream"
     assert event.source == "web"

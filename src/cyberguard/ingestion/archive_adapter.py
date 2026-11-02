@@ -33,7 +33,9 @@ class ArchiveAdapter(Adapter):
                 try:
                     parsed = self._adapter(member).parse(member)
                     for event in parsed:
-                        event.attributes.setdefault("archive_member", member.relative_to(root).as_posix())
+                        event.attributes.setdefault(
+                            "archive_member", member.relative_to(root).as_posix()
+                        )
                     events.extend(parsed)
                 except (ValueError, OSError, UnicodeError) as exc:
                     errors.append(f"{member.name}: {exc}")

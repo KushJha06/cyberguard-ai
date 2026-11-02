@@ -20,7 +20,9 @@ class TriageService:
         self.adapters = default_adapters()
         self.rules = default_rules()
         built_ins = built_in_plugins(self.adapters, self.rules)
-        external = load_external_plugins(self.adapters, self.rules, settings.enable_external_plugins)
+        external = load_external_plugins(
+            self.adapters, self.rules, settings.enable_external_plugins
+        )
         self.plugins = built_ins + external
         self.redact_sensitive = settings.redact_sensitive
 
@@ -48,7 +50,9 @@ class TriageService:
         findings = self.rules.run(events)
         return [incident_from_findings(group) for group in group_findings(findings).values()]
 
-    def ingest_file(self, path: Path, adapter_name: str | None = None) -> tuple[list[TelemetryEvent], list[Incident]]:
+    def ingest_file(
+        self, path: Path, adapter_name: str | None = None
+    ) -> tuple[list[TelemetryEvent], list[Incident]]:
         adapter = self.adapters.get(adapter_name) if adapter_name else self.adapters.detect(path)
         events = adapter.parse(path)
         return events, self.ingest_events(events)

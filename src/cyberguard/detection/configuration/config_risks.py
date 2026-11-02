@@ -13,7 +13,10 @@ class ConfigurationRiskRule(DetectionRule):
     def evaluate(self, events: list[TelemetryEvent]) -> list[Finding]:
         findings = []
         for event in events:
-            if event.category != EventCategory.CONFIGURATION or event.event_type == "ssh_config_snapshot":
+            if (
+                event.category != EventCategory.CONFIGURATION
+                or event.event_type == "ssh_config_snapshot"
+            ):
                 continue
             config = event.attributes.get("config", {})
             text = str(event.attributes.get("raw_text", ""))
@@ -22,26 +25,54 @@ class ConfigurationRiskRule(DetectionRule):
                 risks.extend(self._docker_risks(config))
             if event.event_type == "kubernetes_config_snapshot":
                 risks.extend(self._kubernetes_risks(config))
-            if "nginx" in str(event.attributes.get("filename", "")).lower() or event.event_type == "nginx_config_snapshot":
+            if (
+                "nginx" in str(event.attributes.get("filename", "")).lower()
+                or event.event_type == "nginx_config_snapshot"
+            ):
                 risks.extend(self._nginx_risks(text))
             credential_fields = event.attributes.get("credential_fields_present", [])
             risks.extend(f"Potential plaintext secret in {key}" for key in credential_fields)
             risks = list(dict.fromkeys(risks))
             if not risks:
                 continue
-            severe = any(token in risk.lower() for risk in risks for token in ("privileged", "docker socket", "plaintext secret", "tls disabled"))
-            findings.append(Finding(rule_id=self.rule_id, title=self.title,
-                category=EventCategory.CONFIGURATION, severity=Severity.HIGH if severe else Severity.MEDIUM,
-                confidence=.84, summary="; ".join(risks[:6]) + ".",
-                root_cause="The supplied configuration contains settings that can increase exposure, privilege or credential risk.",
-                evidence=[Evidence(event_id=event.id, summary=risk,
-                    details={"filename": event.attributes.get("filename")}) for risk in risks[:10]],
-                analyst_checks=["Confirm effective runtime configuration and whether each setting is required by an approved design.",
-                    "Check deployment overrides, included files, environment injection and secret-management controls."],
-                remediation=["Move secrets to an approved secret store and apply least privilege, secure transport and explicit versioning through change control."],
-                validation=["Run the component's native configuration validator and repeat security checks after deployment."],
-                limitations=["Static configuration analysis cannot see all runtime overrides or business requirements."],
-                correlation_key=f"config-risk:{event.host or event.attributes.get('filename', 'unknown')}"))
+            severe = any(
+                token in risk.lower()
+                for risk in risks
+                for token in ("privileged", "docker socket", "plaintext secret", "tls disabled")
+            )
+            findings.append(
+                Finding(
+                    rule_id=self.rule_id,
+                    title=self.title,
+                    category=EventCategory.CONFIGURATION,
+                    severity=Severity.HIGH if severe else Severity.MEDIUM,
+                    confidence=0.84,
+                    summary="; ".join(risks[:6]) + ".",
+                    root_cause="The supplied configuration contains settings that can increase exposure, privilege or credential risk.",
+                    evidence=[
+                        Evidence(
+                            event_id=event.id,
+                            summary=risk,
+                            details={"filename": event.attributes.get("filename")},
+                        )
+                        for risk in risks[:10]
+                    ],
+                    analyst_checks=[
+                        "Confirm effective runtime configuration and whether each setting is required by an approved design.",
+                        "Check deployment overrides, included files, environment injection and secret-management controls.",
+                    ],
+                    remediation=[
+                        "Move secrets to an approved secret store and apply least privilege, secure transport and explicit versioning through change control."
+                    ],
+                    validation=[
+                        "Run the component's native configuration validator and repeat security checks after deployment."
+                    ],
+                    limitations=[
+                        "Static configuration analysis cannot see all runtime overrides or business requirements."
+                    ],
+                    correlation_key=f"config-risk:{event.host or event.attributes.get('filename', 'unknown')}",
+                )
+            )
         return findings
 
     @staticmethod
@@ -62,9 +93,15 @@ class ConfigurationRiskRule(DetectionRule):
             normalized = str(value).lower()
             if path.endswith(("debug", "debug_mode")) and normalized in {"true", "1", "yes", "on"}:
                 risks.append(f"Debug mode enabled at {path}")
-            if any(path.endswith(key) for key in ("verify_ssl", "ssl_verify", "tls_verify")) and normalized in {"false", "0", "no", "off"}:
+            if any(
+                path.endswith(key) for key in ("verify_ssl", "ssl_verify", "tls_verify")
+            ) and normalized in {"false", "0", "no", "off"}:
                 risks.append(f"TLS certificate verification disabled at {path}")
-            if path.endswith(("allow_anonymous", "anonymous_access")) and normalized in {"true", "1", "yes"}:
+            if path.endswith(("allow_anonymous", "anonymous_access")) and normalized in {
+                "true",
+                "1",
+                "yes",
+            }:
                 risks.append(f"Anonymous access enabled at {path}")
         return risks
 
@@ -83,7 +120,9 @@ class ConfigurationRiskRule(DetectionRule):
                 risks.append(f"Docker service {name} uses host networking")
             if str(service.get("user", "")).lower() in {"0", "root", "0:0"}:
                 risks.append(f"Docker service {name} explicitly runs as root")
-            if any("/var/run/docker.sock" in str(volume) for volume in service.get("volumes", []) or []):
+            if any(
+                "/var/run/docker.sock" in str(volume) for volume in service.get("volumes", []) or []
+            ):
                 risks.append(f"Docker service {name} mounts the Docker socket")
             image = str(service.get("image", ""))
             if image and (":" not in image.rsplit("/", 1)[-1] or image.endswith(":latest")):
@@ -101,14 +140,19 @@ class ConfigurationRiskRule(DetectionRule):
             spec = spec["template"].get("spec", {})
         if not isinstance(spec, dict):
             return risks
-        for key, label in (("hostNetwork", "host networking"), ("hostPID", "host PID namespace"),
-            ("hostIPC", "host IPC namespace")):
+        for key, label in (
+            ("hostNetwork", "host networking"),
+            ("hostPID", "host PID namespace"),
+            ("hostIPC", "host IPC namespace"),
+        ):
             if spec.get(key) is True:
                 risks.append(f"Kubernetes {kind} uses {label}")
         volumes = spec.get("volumes", []) or []
         if any(isinstance(volume, dict) and "hostPath" in volume for volume in volumes):
             risks.append(f"Kubernetes {kind} mounts a hostPath volume")
-        for container in (spec.get("containers", []) or []) + (spec.get("initContainers", []) or []):
+        for container in (spec.get("containers", []) or []) + (
+            spec.get("initContainers", []) or []
+        ):
             if not isinstance(container, dict):
                 continue
             name = str(container.get("name", "unnamed"))

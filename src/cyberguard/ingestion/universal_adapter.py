@@ -91,7 +91,12 @@ class UniversalTextAdapter(Adapter):
 
     @staticmethod
     def _looks_like_ssh_config(text: str) -> bool:
-        directives = ("permitrootlogin", "passwordauthentication", "permitemptypasswords", "protocol ")
+        directives = (
+            "permitrootlogin",
+            "passwordauthentication",
+            "permitemptypasswords",
+            "protocol ",
+        )
         lowered = text.lower()
         return any(re.search(rf"(?m)^\s*{directive}", lowered) for directive in directives)
 
@@ -112,9 +117,16 @@ class UniversalTextAdapter(Adapter):
                 except ValueError:
                     pass
             category, event_type = self._classify_line(message)
-            events.append(TelemetryEvent(timestamp=timestamp, source=f"file:{path.name}", category=category,
-                event_type=event_type, message=message,
-                attributes={"line_number": line_number, "filename": path.name}))
+            events.append(
+                TelemetryEvent(
+                    timestamp=timestamp,
+                    source=f"file:{path.name}",
+                    category=category,
+                    event_type=event_type,
+                    message=message,
+                    attributes={"line_number": line_number, "filename": path.name},
+                )
+            )
         if not events:
             raise ValueError("The file contains no non-empty text records")
         return events
@@ -122,11 +134,19 @@ class UniversalTextAdapter(Adapter):
     @staticmethod
     def _classify_line(message: str) -> tuple[EventCategory, str]:
         text = message.lower()
-        if any(token in text for token in ("failed password", "authentication failure", "login failed")):
+        if any(
+            token in text for token in ("failed password", "authentication failure", "login failed")
+        ):
             return EventCategory.AUTHENTICATION, "authentication_log"
-        if any(token in text for token in ("http/1.", "status=", "exception", "traceback", "stack trace")):
+        if any(
+            token in text
+            for token in ("http/1.", "status=", "exception", "traceback", "stack trace")
+        ):
             return EventCategory.APPLICATION, "application_log"
-        if any(token in text for token in ("systemd", "kernel", "filesystem", "out of memory", "disk full")):
+        if any(
+            token in text
+            for token in ("systemd", "kernel", "filesystem", "out of memory", "disk full")
+        ):
             return EventCategory.SYSTEM, "system_log"
         if any(token in text for token in ("server {", "services:", "listen ", "permitrootlogin")):
             return EventCategory.CONFIGURATION, "configuration_text"

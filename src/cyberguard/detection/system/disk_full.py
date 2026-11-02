@@ -24,13 +24,38 @@ class DiskFullRule(DetectionRule):
                 severity = Severity.CRITICAL if used >= 98 else Severity.HIGH
                 host = e.host or "unknown"
                 mount = str(e.attributes.get("mount", "/"))
-                results.append(Finding(rule_id=self.rule_id, title=self.title, category=EventCategory.SYSTEM,
-                    severity=severity, confidence=0.98, summary=f"Disk usage is {used:.1f}% on {host}:{mount}.",
-                    root_cause="Filesystem capacity is nearly exhausted, which can interrupt writes and dependent services.",
-                    evidence=[Evidence(event_id=e.id, summary=e.message, details={"used_percent": used, "mount": mount})],
-                    analyst_checks=["Identify the largest recent files and directories.", "Check log rotation and inode utilization."],
-                    remediation=["Remove or archive verified expendable data after approval.", "Correct retention/rotation policy or expand capacity."],
-                    validation=["Confirm usage is below the configured threshold.", "Verify affected services can write successfully."],
-                    limitations=["A single metric cannot identify which data is safe to remove."],
-                    correlation_key=f"disk:{host}:{mount}"))
+                results.append(
+                    Finding(
+                        rule_id=self.rule_id,
+                        title=self.title,
+                        category=EventCategory.SYSTEM,
+                        severity=severity,
+                        confidence=0.98,
+                        summary=f"Disk usage is {used:.1f}% on {host}:{mount}.",
+                        root_cause="Filesystem capacity is nearly exhausted, which can interrupt writes and dependent services.",
+                        evidence=[
+                            Evidence(
+                                event_id=e.id,
+                                summary=e.message,
+                                details={"used_percent": used, "mount": mount},
+                            )
+                        ],
+                        analyst_checks=[
+                            "Identify the largest recent files and directories.",
+                            "Check log rotation and inode utilization.",
+                        ],
+                        remediation=[
+                            "Remove or archive verified expendable data after approval.",
+                            "Correct retention/rotation policy or expand capacity.",
+                        ],
+                        validation=[
+                            "Confirm usage is below the configured threshold.",
+                            "Verify affected services can write successfully.",
+                        ],
+                        limitations=[
+                            "A single metric cannot identify which data is safe to remove."
+                        ],
+                        correlation_key=f"disk:{host}:{mount}",
+                    )
+                )
         return results

@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Generate deterministic, shareable CyberGuard benchmark telemetry."""
+
 import argparse
 import json
 import random
@@ -13,17 +14,42 @@ def generate(seed: int = 42) -> list[dict]:
     events = []
     for index in range(250):
         status = 500 if 100 <= index < 125 else rng.choice([200, 200, 200, 201, 204])
-        events.append({"timestamp": (start + timedelta(seconds=index * 3)).isoformat(), "source": "benchmark",
-            "category": "application", "event_type": "http_request", "host": "web-01", "service": "checkout",
-            "message": f"HTTP request completed with {status}", "attributes": {"status_code": status, "route": "/checkout"}})
+        events.append(
+            {
+                "timestamp": (start + timedelta(seconds=index * 3)).isoformat(),
+                "source": "benchmark",
+                "category": "application",
+                "event_type": "http_request",
+                "host": "web-01",
+                "service": "checkout",
+                "message": f"HTTP request completed with {status}",
+                "attributes": {"status_code": status, "route": "/checkout"},
+            }
+        )
     for index in range(8):
-        events.append({"timestamp": (start + timedelta(minutes=20, seconds=index * 20)).isoformat(),
-            "source": "benchmark", "category": "authentication", "event_type": "login", "host": "bastion-01",
-            "service": "ssh", "message": "Failed password for invalid user",
-            "attributes": {"source_ip": "203.0.113.42", "outcome": "failure"}})
-    events.append({"timestamp": (start + timedelta(minutes=30)).isoformat(), "source": "benchmark",
-        "category": "system", "event_type": "disk_usage", "host": "db-01", "message": "Disk utilization high",
-        "attributes": {"disk_used_percent": 96.2, "mount": "/var/lib/postgresql"}})
+        events.append(
+            {
+                "timestamp": (start + timedelta(minutes=20, seconds=index * 20)).isoformat(),
+                "source": "benchmark",
+                "category": "authentication",
+                "event_type": "login",
+                "host": "bastion-01",
+                "service": "ssh",
+                "message": "Failed password for invalid user",
+                "attributes": {"source_ip": "203.0.113.42", "outcome": "failure"},
+            }
+        )
+    events.append(
+        {
+            "timestamp": (start + timedelta(minutes=30)).isoformat(),
+            "source": "benchmark",
+            "category": "system",
+            "event_type": "disk_usage",
+            "host": "db-01",
+            "message": "Disk utilization high",
+            "attributes": {"disk_used_percent": 96.2, "mount": "/var/lib/postgresql"},
+        }
+    )
     return events
 
 

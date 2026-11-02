@@ -24,6 +24,13 @@ class SSHConfigAdapter(Adapter):
             parts = re.split(r"\s+", line, maxsplit=1)
             if len(parts) == 2:
                 directives[parts[0].lower()] = parts[1].strip()
-        return [TelemetryEvent(source="ssh_config", category=EventCategory.CONFIGURATION,
-            event_type="ssh_config_snapshot", host=path.name, message=f"Parsed SSH configuration {path.name}",
-            attributes={"directives": directives})]
+        return [
+            TelemetryEvent(
+                source="ssh_config",
+                category=EventCategory.CONFIGURATION,
+                event_type="ssh_config_snapshot",
+                host=path.name,
+                message=f"Parsed SSH configuration {path.name}",
+                attributes={"directives": directives},
+            )
+        ]

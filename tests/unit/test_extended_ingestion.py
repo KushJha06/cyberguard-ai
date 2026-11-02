@@ -28,7 +28,9 @@ def test_docker_compose_risks(tmp_path):
 
 
 def test_generic_error_log_creates_triage_finding():
-    event = TelemetryEvent(source="application.log", message="Fatal exception while starting application")
+    event = TelemetryEvent(
+        source="application.log", message="Fatal exception while starting application"
+    )
     assert GenericErrorRule().evaluate([event])[0].rule_id == "CG-APP-003"
 
 
@@ -46,7 +48,9 @@ def test_config_registry_routes_ssh_nginx_and_dotenv(tmp_path):
 
 def test_kubernetes_security_context_risks(tmp_path):
     path = tmp_path / "deployment.yaml"
-    path.write_text("kind: Deployment\nspec:\n  template:\n    spec:\n      hostNetwork: true\n      containers:\n        - name: api\n          image: api:latest\n          securityContext:\n            privileged: true\n")
+    path.write_text(
+        "kind: Deployment\nspec:\n  template:\n    spec:\n      hostNetwork: true\n      containers:\n        - name: api\n          image: api:latest\n          securityContext:\n            privileged: true\n"
+    )
     event = StructuredConfigAdapter().parse(path)[0]
     finding = ConfigurationRiskRule().evaluate([event])[0]
     assert event.event_type == "kubernetes_config_snapshot"

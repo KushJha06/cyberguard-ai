@@ -16,7 +16,18 @@ _FIELD_ALIASES = {
     "event_type": ("event_type", "event", "type", "event_name", "event_id", "eventid"),
     "host": ("host", "hostname", "computer", "device", "node"),
     "service": ("service", "application", "app", "component", "process"),
-    "message": ("message", "msg", "log", "description", "detail", "error", "label", "content", "event_template", "eventtemplate"),
+    "message": (
+        "message",
+        "msg",
+        "log",
+        "description",
+        "detail",
+        "error",
+        "label",
+        "content",
+        "event_template",
+        "eventtemplate",
+    ),
 }
 _ATTRIBUTE_ALIASES = {
     "status_code": ("status_code", "status", "http_status", "response_code"),
@@ -65,18 +76,26 @@ class CSVAdapter(Adapter):
             raise ValueError("The CSV file contains no data rows")
         return events
 
-    def _event(self, row: dict[str, str], filename: str = "upload.csv",
-        row_number: int = 0) -> TelemetryEvent:
-        normalized = {self._key(key): value.strip() if isinstance(value, str) else value
-            for key, value in row.items() if key is not None}
+    def _event(
+        self, row: dict[str, str], filename: str = "upload.csv", row_number: int = 0
+    ) -> TelemetryEvent:
+        normalized = {
+            self._key(key): value.strip() if isinstance(value, str) else value
+            for key, value in row.items()
+            if key is not None
+        }
         timestamp_value = self._value(normalized, "timestamp")
         if normalized.get("date") and normalized.get("time") and not normalized.get("timestamp"):
-            timestamp_value = f'{normalized["date"]} {normalized["time"]}'
+            timestamp_value = f"{normalized['date']} {normalized['time']}"
         timestamp = self._timestamp(timestamp_value)
-        source = self._value(normalized, "source") or normalized.get("component") or f"csv:{filename}"
+        source = (
+            self._value(normalized, "source") or normalized.get("component") or f"csv:{filename}"
+        )
         host = self._value(normalized, "host") or None
         service = self._value(normalized, "service") or None
-        message = self._value(normalized, "message") or self._fallback_message(normalized, row_number)
+        message = self._value(normalized, "message") or self._fallback_message(
+            normalized, row_number
+        )
         attributes = self._attributes(normalized)
         known_aliases = {alias for aliases in _FIELD_ALIASES.values() for alias in aliases}
         attribute_aliases = {alias for aliases in _ATTRIBUTE_ALIASES.values() for alias in aliases}
@@ -86,18 +105,29 @@ class CSVAdapter(Adapter):
         category = self._category(self._value(normalized, "category"), message, attributes)
         if category == EventCategory.UNKNOWN:
             lowered_filename = filename.lower()
-            if any(token in lowered_filename for token in ("apache", "nginx", "application", "app_")):
+            if any(
+                token in lowered_filename for token in ("apache", "nginx", "application", "app_")
+            ):
                 category = EventCategory.APPLICATION
             elif any(token in lowered_filename for token in ("openssh", "sshd", "auth")):
                 category = EventCategory.AUTHENTICATION
             elif any(token in lowered_filename for token in ("linux", "bgl", "hdfs", "system")):
                 category = EventCategory.SYSTEM
-        event_type = self._value(normalized, "event_type") or self._event_type(category, message, attributes)
+        event_type = self._value(normalized, "event_type") or self._event_type(
+            category, message, attributes
+        )
         attributes.setdefault("csv_row", row_number)
-        return TelemetryEvent(timestamp=timestamp, source=str(source), category=category,
-            event_type=str(event_type), host=str(host) if host else None,
-            service=str(service) if service else None, message=str(message),
-            attributes=attributes, raw=row)
+        return TelemetryEvent(
+            timestamp=timestamp,
+            source=str(source),
+            category=category,
+            event_type=str(event_type),
+            host=str(host) if host else None,
+            service=str(service) if service else None,
+            message=str(message),
+            attributes=attributes,
+            raw=row,
+        )
 
     @staticmethod
     def _key(value: str) -> str:
@@ -105,16 +135,22 @@ class CSVAdapter(Adapter):
 
     @staticmethod
     def _value(row: dict[str, Any], field: str) -> Any:
-        return next((row.get(alias) for alias in _FIELD_ALIASES[field]
-            if row.get(alias) not in (None, "")), None)
+        return next(
+            (row.get(alias) for alias in _FIELD_ALIASES[field] if row.get(alias) not in (None, "")),
+            None,
+        )
 
     def _attributes(self, row: dict[str, Any]) -> dict[str, Any]:
         attributes = {}
         for canonical, aliases in _ATTRIBUTE_ALIASES.items():
-            value = next((row.get(alias) for alias in aliases if row.get(alias) not in (None, "")), None)
+            value = next(
+                (row.get(alias) for alias in aliases if row.get(alias) not in (None, "")), None
+            )
             if value is not None:
                 coerced = self._coerce(value)
-                if canonical in {"outcome", "service_state", "action", "log_level"} and isinstance(coerced, str):
+                if canonical in {"outcome", "service_state", "action", "log_level"} and isinstance(
+                    coerced, str
+                ):
                     coerced = coerced.lower()
                 attributes[canonical] = coerced
         return attributes
@@ -152,11 +188,19 @@ class CSVAdapter(Adapter):
             except ValueError:
                 pass
         text = message.lower()
-        if "source_ip" in attributes or any(token in text for token in ("login", "password", "authentication")):
+        if "source_ip" in attributes or any(
+            token in text for token in ("login", "password", "authentication")
+        ):
             return EventCategory.AUTHENTICATION
-        if "disk_used_percent" in attributes or "memory_used_percent" in attributes or "service_state" in attributes:
+        if (
+            "disk_used_percent" in attributes
+            or "memory_used_percent" in attributes
+            or "service_state" in attributes
+        ):
             return EventCategory.SYSTEM
-        if "status_code" in attributes or any(token in text for token in ("exception", "traceback", "http")):
+        if "status_code" in attributes or any(
+            token in text for token in ("exception", "traceback", "http")
+        ):
             return EventCategory.APPLICATION
         if "path" in attributes and "action" in attributes:
             return EventCategory.FILE_INTEGRITY
@@ -186,7 +230,9 @@ class CSVAdapter(Adapter):
 
     @staticmethod
     def _fallback_message(row: dict[str, Any], row_number: int) -> str:
-        values = [f"{key}={value}" for key, value in list(row.items())[:6] if value not in (None, "")]
+        values = [
+            f"{key}={value}" for key, value in list(row.items())[:6] if value not in (None, "")
+        ]
         return "; ".join(values) or f"CSV record {row_number}"
 
     @staticmethod

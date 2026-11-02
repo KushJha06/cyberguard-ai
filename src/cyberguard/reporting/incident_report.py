@@ -22,6 +22,7 @@ def incident_markdown(incident: Incident) -> str:
 def incident_html(incident: Incident) -> str:
     def items(values: list[str]) -> str:
         return "".join(f"<li>{escape(value)}</li>" for value in values)
+
     return f"""<!doctype html><html><head><meta charset="utf-8"><title>{escape(incident.title)}</title>
 <style>body{{font:15px system-ui;max-width:900px;margin:48px auto;color:#182230;line-height:1.6}}h1,h2{{color:#0f2742}}.meta{{padding:16px;background:#eef5fa;border-left:4px solid #0891b2}}footer{{margin-top:40px;color:#64748b}}</style></head><body>
 <h1>{escape(incident.title)}</h1><div class="meta"><b>Severity:</b> {incident.severity.value.upper()} &nbsp; <b>Confidence:</b> {incident.confidence:.0%}<br><b>ID:</b> {incident.id}</div>

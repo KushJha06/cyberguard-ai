@@ -17,7 +17,9 @@ def redact_text(value: str) -> str:
 
 def redact(value: Any) -> Any:
     if isinstance(value, dict):
-        return {k: "[REDACTED]" if KEY_PATTERN.search(str(k)) else redact(v) for k, v in value.items()}
+        return {
+            k: "[REDACTED]" if KEY_PATTERN.search(str(k)) else redact(v) for k, v in value.items()
+        }
     if isinstance(value, list):
         return [redact(item) for item in value]
     if isinstance(value, str):

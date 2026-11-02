@@ -25,8 +25,9 @@ def _materialize(value):
     return value() if isinstance(value, type) else value
 
 
-def load_external_plugins(adapters: AdapterRegistry, rules: RuleRegistry,
-    enabled: bool = True) -> list[PluginInfo]:
+def load_external_plugins(
+    adapters: AdapterRegistry, rules: RuleRegistry, enabled: bool = True
+) -> list[PluginInfo]:
     """Load trusted installed plugins through stable Python entry-point groups."""
     if not enabled:
         return []
@@ -46,17 +47,50 @@ def load_external_plugins(adapters: AdapterRegistry, rules: RuleRegistry,
                     if not isinstance(plugin, DetectionRule):
                         raise TypeError("Entry point must produce a DetectionRule")
                     rules.register(plugin)
-                loaded.append(PluginInfo(id=point.name, kind=kind, distribution=distribution,
-                    version=version, status="loaded"))
+                loaded.append(
+                    PluginInfo(
+                        id=point.name,
+                        kind=kind,
+                        distribution=distribution,
+                        version=version,
+                        status="loaded",
+                    )
+                )
             except Exception as exc:
-                loaded.append(PluginInfo(id=point.name, kind=kind, distribution=distribution,
-                    version=version, status="failed", detail=str(exc)))
+                loaded.append(
+                    PluginInfo(
+                        id=point.name,
+                        kind=kind,
+                        distribution=distribution,
+                        version=version,
+                        status="failed",
+                        detail=str(exc),
+                    )
+                )
     return loaded
 
 
 def built_in_plugins(adapters: AdapterRegistry, rules: RuleRegistry) -> list[PluginInfo]:
-    items = [PluginInfo(id=name, kind="adapter", distribution="cyberguard-ai",
-        version=PLUGIN_API_VERSION, source="built-in", status="loaded") for name in adapters.names]
-    items.extend(PluginInfo(id=rule_id, kind="detection", distribution="cyberguard-ai",
-        version=PLUGIN_API_VERSION, source="built-in", status="loaded") for rule_id in rules.rule_ids)
+    items = [
+        PluginInfo(
+            id=name,
+            kind="adapter",
+            distribution="cyberguard-ai",
+            version=PLUGIN_API_VERSION,
+            source="built-in",
+            status="loaded",
+        )
+        for name in adapters.names
+    ]
+    items.extend(
+        PluginInfo(
+            id=rule_id,
+            kind="detection",
+            distribution="cyberguard-ai",
+            version=PLUGIN_API_VERSION,
+            source="built-in",
+            status="loaded",
+        )
+        for rule_id in rules.rule_ids
+    )
     return items

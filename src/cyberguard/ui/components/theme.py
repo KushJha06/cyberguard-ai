@@ -66,7 +66,8 @@ def hero(kicker: str, title: str, description: str, status: str | None = None) -
         status_html = f'<div style="margin-top:1rem"><span class="cg-status"><i class="cg-dot"></i>{escape(status)}</span></div>'
     st.markdown(
         f'<section class="cg-hero"><div class="cg-kicker">{escape(kicker)}</div><h1>{escape(title)}</h1>'
-        f'<p>{escape(description)}</p>{status_html}</section>', unsafe_allow_html=True,
+        f"<p>{escape(description)}</p>{status_html}</section>",
+        unsafe_allow_html=True,
     )
 
 
@@ -80,9 +81,14 @@ def metric_card(label: str, value: str | int, help_text: str, accent: str = "#22
 
 def severity_badge(severity: str) -> str:
     color = SEVERITY_COLORS.get(severity.lower(), "#64748b")
-    return (f'<span class="cg-badge" style="color:{color};background:{color}18;border:1px solid {color}55">'
-            f'{escape(severity)}</span>')
+    return (
+        f'<span class="cg-badge" style="color:{color};background:{color}18;border:1px solid {color}55">'
+        f"{escape(severity)}</span>"
+    )
 
 
 def empty_state(title: str, message: str) -> None:
-    st.markdown(f'<div class="cg-empty"><h3>{escape(title)}</h3><p>{escape(message)}</p></div>', unsafe_allow_html=True)
+    st.markdown(
+        f'<div class="cg-empty"><h3>{escape(title)}</h3><p>{escape(message)}</p></div>',
+        unsafe_allow_html=True,
+    )

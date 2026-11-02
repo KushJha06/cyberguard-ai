@@ -36,14 +36,38 @@ class SSHBruteForceRule(DetectionRule):
                     matched = list(window)
                     break
             if matched:
-                findings.append(Finding(rule_id=self.rule_id, title=self.title,
-                        category=EventCategory.AUTHENTICATION, severity=Severity.HIGH, confidence=0.9,
+                findings.append(
+                    Finding(
+                        rule_id=self.rule_id,
+                        title=self.title,
+                        category=EventCategory.AUTHENTICATION,
+                        severity=Severity.HIGH,
+                        confidence=0.9,
                         summary=f"{len(matched)} failed SSH logins from {source_ip} against {host}.",
                         root_cause="Repeated authentication failures indicate credential guessing or an automated brute-force attempt.",
-                        evidence=[Evidence(event_id=e.id, summary=e.message, details={"source_ip": source_ip}) for e in matched],
-                        analyst_checks=["Confirm whether the source IP belongs to an authorized scanner or administrator.", "Review successful logins after the failure burst."],
-                        remediation=["Restrict SSH exposure and enable rate limiting or fail2ban after approval.", "Prefer key-based authentication and disable unused accounts."],
-                        validation=["Verify the failure rate returns to baseline.", "Confirm no suspicious successful session followed the attempts."],
-                        limitations=["NAT or shared jump hosts can make many users appear under one source IP."],
-                        mitre_techniques=["T1110.001"], correlation_key=f"ssh-bruteforce:{source_ip}:{host}"))
+                        evidence=[
+                            Evidence(
+                                event_id=e.id, summary=e.message, details={"source_ip": source_ip}
+                            )
+                            for e in matched
+                        ],
+                        analyst_checks=[
+                            "Confirm whether the source IP belongs to an authorized scanner or administrator.",
+                            "Review successful logins after the failure burst.",
+                        ],
+                        remediation=[
+                            "Restrict SSH exposure and enable rate limiting or fail2ban after approval.",
+                            "Prefer key-based authentication and disable unused accounts.",
+                        ],
+                        validation=[
+                            "Verify the failure rate returns to baseline.",
+                            "Confirm no suspicious successful session followed the attempts.",
+                        ],
+                        limitations=[
+                            "NAT or shared jump hosts can make many users appear under one source IP."
+                        ],
+                        mitre_techniques=["T1110.001"],
+                        correlation_key=f"ssh-bruteforce:{source_ip}:{host}",
+                    )
+                )
         return findings

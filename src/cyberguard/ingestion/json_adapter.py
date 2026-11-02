@@ -24,7 +24,9 @@ class JSONAdapter(Adapter):
                     try:
                         events.append(TelemetryEvent.model_validate(json.loads(line)))
                     except (json.JSONDecodeError, ValueError) as exc:
-                        raise ValueError(f"Invalid JSONL record at line {line_number}: {exc}") from exc
+                        raise ValueError(
+                            f"Invalid JSONL record at line {line_number}: {exc}"
+                        ) from exc
             return events
         payload = json.loads(path.read_text(encoding="utf-8"))
         records = payload if isinstance(payload, list) else payload.get("events", [payload])

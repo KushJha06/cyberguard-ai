@@ -6,8 +6,14 @@ from cyberguard.ui.components.navigation import sidebar_brand
 from cyberguard.ui.components.theme import apply_theme, hero
 
 st.set_page_config(page_title="Preflight · CyberGuard AI", page_icon="✓", layout="wide")
-apply_theme(); sidebar_brand(); client = CyberGuardClient()
-hero("Before-work assurance", "Analyst preflight", "Find platform blockers, input risks, and preparation gaps before beginning an investigation or operational change.")
+apply_theme()
+sidebar_brand()
+client = CyberGuardClient()
+hero(
+    "Before-work assurance",
+    "Analyst preflight",
+    "Find platform blockers, input risks, and preparation gaps before beginning an investigation or operational change.",
+)
 
 try:
     report = client.preflight()
@@ -23,10 +29,10 @@ else:
     st.error("One or more platform blockers must be resolved before analysis.")
 
 st.markdown('<div class="cg-section">Automated checks</div>', unsafe_allow_html=True)
-icons = {"pass": "✅", "warn": "⚠️", "fail": "❌"}
+icons = {"pass": chr(0x2705), "warn": chr(0x26A0) + "️", "fail": chr(0x274C)}
 for check in report["checks"]:
     with st.container(border=True):
-        st.markdown(f'**{icons.get(check["status"], "•")} {check["name"]}**')
+        st.markdown(f"**{icons.get(check['status'], '•')} {check['name']}**")
         st.write(check["detail"])
         if check.get("action"):
             st.warning(check["action"])
@@ -47,4 +53,6 @@ a, b, c = st.columns(3)
 a.metric("Version", health["version"])
 b.metric("Rules", health["rules"])
 c.metric("Adapters", len(health["adapters"]))
-st.info("Next: open Upload Telemetry. CyberGuard will classify the input, identify whether the likely issue is application, system/infrastructure, configuration, security logs or file integrity, and provide checks and remediation guidance.")
+st.info(
+    "Next: open Upload Telemetry. CyberGuard will classify the input, identify whether the likely issue is application, system/infrastructure, configuration, security logs or file integrity, and provide checks and remediation guidance."
+)

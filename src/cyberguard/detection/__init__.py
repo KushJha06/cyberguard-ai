@@ -16,9 +16,18 @@ from .system.service_down import ServiceDownRule
 def default_registry() -> RuleRegistry:
     registry = RuleRegistry()
     rules = (
-        SSHBruteForceRule(), SuspiciousPowerShellRule(), DiskFullRule(), CapacityForecastRule(),
-        MemoryPressureRule(), ServiceDownRule(), HTTPErrorSpikeRule(), DatabasePoolRule(), GenericErrorRule(),
-        InsecureSSHRule(), ConfigurationRiskRule(), SensitiveFileChangeRule(),
+        SSHBruteForceRule(),
+        SuspiciousPowerShellRule(),
+        DiskFullRule(),
+        CapacityForecastRule(),
+        MemoryPressureRule(),
+        ServiceDownRule(),
+        HTTPErrorSpikeRule(),
+        DatabasePoolRule(),
+        GenericErrorRule(),
+        InsecureSSHRule(),
+        ConfigurationRiskRule(),
+        SensitiveFileChangeRule(),
     )
     for rule in rules:
         registry.register(rule)

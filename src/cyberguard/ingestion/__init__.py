@@ -9,11 +9,25 @@ from .universal_adapter import UniversalTextAdapter
 
 def default_registry() -> AdapterRegistry:
     registry = AdapterRegistry()
-    for adapter in (CSVAdapter(), JSONAdapter(), SSHConfigAdapter(), StructuredConfigAdapter(),
-        ArchiveAdapter(), UniversalTextAdapter()):
+    for adapter in (
+        CSVAdapter(),
+        JSONAdapter(),
+        SSHConfigAdapter(),
+        StructuredConfigAdapter(),
+        ArchiveAdapter(),
+        UniversalTextAdapter(),
+    ):
         registry.register(adapter)
     return registry
 
 
-__all__ = ["AdapterRegistry", "ArchiveAdapter", "CSVAdapter", "JSONAdapter", "SSHConfigAdapter",
-    "StructuredConfigAdapter", "UniversalTextAdapter", "default_registry"]
+__all__ = [
+    "AdapterRegistry",
+    "ArchiveAdapter",
+    "CSVAdapter",
+    "JSONAdapter",
+    "SSHConfigAdapter",
+    "StructuredConfigAdapter",
+    "UniversalTextAdapter",
+    "default_registry",
+]

@@ -33,12 +33,21 @@ from .schemas import (
 
 VERSION = "0.9.0"
 settings = get_settings()
-app = FastAPI(title="CyberGuard AI", version=VERSION,
+app = FastAPI(
+    title="CyberGuard AI",
+    version=VERSION,
     description="Local-first diagnostics and cybersecurity triage API",
-    docs_url="/docs", redoc_url="/redoc")
+    docs_url="/docs",
+    redoc_url="/redoc",
+)
 app.add_middleware(GZipMiddleware, minimum_size=1_000)
-app.add_middleware(CORSMiddleware, allow_origins=[item.strip() for item in settings.cors_origins.split(",")],
-    allow_credentials=False, allow_methods=["GET", "POST", "PATCH"], allow_headers=["Content-Type", "X-Request-ID"])
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[item.strip() for item in settings.cors_origins.split(",")],
+    allow_credentials=False,
+    allow_methods=["GET", "POST", "PATCH"],
+    allow_headers=["Content-Type", "X-Request-ID"],
+)
 service = TriageService()
 
 
@@ -55,14 +64,21 @@ async def request_context(request: Request, call_next):
 
 @app.exception_handler(ValueError)
 async def value_error_handler(request: Request, exc: ValueError) -> JSONResponse:
-    return JSONResponse(status_code=422,
-        content={"detail": str(exc), "request_id": getattr(request.state, "request_id", None)})
+    return JSONResponse(
+        status_code=422,
+        content={"detail": str(exc), "request_id": getattr(request.state, "request_id", None)},
+    )
 
 
 @app.get("/health", response_model=HealthResponse, tags=["operations"])
 def health() -> HealthResponse:
-    return HealthResponse(status="ok", version=VERSION, rules=len(service.rules.rule_ids),
-        adapters=service.adapters.names, stored_events=service.store.event_count())
+    return HealthResponse(
+        status="ok",
+        version=VERSION,
+        rules=len(service.rules.rule_ids),
+        adapters=service.adapters.names,
+        stored_events=service.store.event_count(),
+    )
 
 
 @app.get("/api/v1/preflight", response_model=PreflightReport, tags=["operations"])
@@ -82,15 +98,22 @@ def rules() -> list[Capability]:
 
 @app.get("/api/v1/adapters", response_model=list[Capability], tags=["operations"])
 def adapters() -> list[Capability]:
-    return [Capability(id=name, name=name.replace("_", " ").title()) for name in service.adapters.names]
+    return [
+        Capability(id=name, name=name.replace("_", " ").title()) for name in service.adapters.names
+    ]
 
 
 @app.get("/api/v1/templates/csv", response_class=PlainTextResponse, tags=["ingestion"])
 def csv_template() -> PlainTextResponse:
-    content = ("timestamp,source,category,event_type,host,service,message,disk_used_percent,mount\n"
-        "2026-10-02T09:00:00Z,node-exporter,system,disk_usage,web-01,,Root filesystem usage high,96.4,/\n")
-    return PlainTextResponse(content, media_type="text/csv",
-        headers={"Content-Disposition": "attachment; filename=cyberguard-telemetry-template.csv"})
+    content = (
+        "timestamp,source,category,event_type,host,service,message,disk_used_percent,mount\n"
+        "2026-10-02T09:00:00Z,node-exporter,system,disk_usage,web-01,,Root filesystem usage high,96.4,/\n"
+    )
+    return PlainTextResponse(
+        content,
+        media_type="text/csv",
+        headers={"Content-Disposition": "attachment; filename=cyberguard-telemetry-template.csv"},
+    )
 
 
 @app.get("/api/v1/datasets", response_model=list[DatasetResponse], tags=["datasets"])
@@ -114,8 +137,9 @@ def list_agents() -> list[AgentStatus]:
 
 
 @app.post("/api/v1/agents/heartbeat", response_model=IngestResponse, tags=["agents"])
-async def agent_heartbeat(heartbeat: AgentHeartbeat, request: Request,
-    authorization: str | None = Header(None)) -> IngestResponse:
+async def agent_heartbeat(
+    heartbeat: AgentHeartbeat, request: Request, authorization: str | None = Header(None)
+) -> IngestResponse:
     if settings.agent_token:
         expected = f"Bearer {settings.agent_token}"
         if not authorization or not secrets.compare_digest(authorization, expected):
@@ -123,10 +147,13 @@ async def agent_heartbeat(heartbeat: AgentHeartbeat, request: Request,
     started = time.perf_counter()
     incidents = await run_in_threadpool(service.ingest_events, heartbeat.events)
     await run_in_threadpool(service.store.save_agent_heartbeat, heartbeat, len(incidents))
-    return IngestResponse(accepted_events=len(heartbeat.events), incidents=incidents,
+    return IngestResponse(
+        accepted_events=len(heartbeat.events),
+        incidents=incidents,
         diagnosis=diagnose(heartbeat.events, incidents),
         processing_ms=round((time.perf_counter() - started) * 1000, 2),
-        request_id=request.state.request_id)
+        request_id=request.state.request_id,
+    )
 
 
 @app.post("/api/v1/demo/load", response_model=IngestResponse, tags=["demo"])
@@ -134,52 +161,83 @@ async def load_complete_demo(request: Request) -> IngestResponse:
     started = time.perf_counter()
     events = complete_demo_events()
     incidents = await run_in_threadpool(service.ingest_events, events)
-    return IngestResponse(accepted_events=len(events), incidents=incidents,
+    return IngestResponse(
+        accepted_events=len(events),
+        incidents=incidents,
         diagnosis=diagnose(events, incidents),
         processing_ms=round((time.perf_counter() - started) * 1000, 2),
-        request_id=request.state.request_id)
+        request_id=request.state.request_id,
+    )
 
 
 @app.post("/api/v1/ingest/events", response_model=IngestResponse, tags=["ingestion"])
-async def ingest_events(batch: EventBatch, request: Request, persist: bool = True) -> IngestResponse:
+async def ingest_events(
+    batch: EventBatch, request: Request, persist: bool = True
+) -> IngestResponse:
     started = time.perf_counter()
     operation = service.ingest_events if persist else service.analyze_events
     incidents = await run_in_threadpool(operation, batch.events)
-    return IngestResponse(accepted_events=len(batch.events), incidents=incidents,
+    return IngestResponse(
+        accepted_events=len(batch.events),
+        incidents=incidents,
         diagnosis=diagnose(batch.events, incidents),
-        processing_ms=round((time.perf_counter() - started) * 1000, 2), request_id=request.state.request_id)
+        processing_ms=round((time.perf_counter() - started) * 1000, 2),
+        request_id=request.state.request_id,
+    )
 
 
 @app.post("/api/v1/ingest/file", response_model=IngestResponse, tags=["ingestion"])
-async def ingest_file(request: Request, file: UploadFile = File(...),
-    adapter: str | None = Form(None)) -> IngestResponse:
+async def ingest_file(
+    request: Request, file: UploadFile = File(...), adapter: str | None = Form(None)
+) -> IngestResponse:
     started = time.perf_counter()
     content = await file.read(settings.max_upload_bytes + 1)
     if len(content) > settings.max_upload_bytes:
-        raise HTTPException(413, f"File exceeds the {settings.max_upload_bytes // 1_048_576} MB upload limit")
+        raise HTTPException(
+            413, f"File exceeds the {settings.max_upload_bytes // 1_048_576} MB upload limit"
+        )
     original_name = Path(file.filename or "upload").name
-    suffix = "".join(Path(original_name).suffixes) or (original_name if original_name.startswith(".") else "")
-    safe_stem = "".join(character for character in Path(original_name).stem if character.isalnum() or character in "-_")[:60]
+    suffix = "".join(Path(original_name).suffixes) or (
+        original_name if original_name.startswith(".") else ""
+    )
+    safe_stem = "".join(
+        character
+        for character in Path(original_name).stem
+        if character.isalnum() or character in "-_"
+    )[:60]
     with NamedTemporaryFile(prefix=f"{safe_stem or 'upload'}-", suffix=suffix, delete=False) as tmp:
         tmp.write(content)
         path = Path(tmp.name)
     try:
-        selected_adapter = service.adapters.get(adapter) if adapter else service.adapters.detect(path)
+        selected_adapter = (
+            service.adapters.get(adapter) if adapter else service.adapters.detect(path)
+        )
         events = await run_in_threadpool(selected_adapter.parse, path)
         incidents = await run_in_threadpool(service.ingest_events, events)
-        manifest = build_manifest(original_name, selected_adapter.name, events, len(service.rules.rule_ids))
+        manifest = build_manifest(
+            original_name, selected_adapter.name, events, len(service.rules.rule_ids)
+        )
     except (UnicodeError, OSError) as exc:
         raise HTTPException(400, str(exc)) from exc
     finally:
         path.unlink(missing_ok=True)
-    return IngestResponse(accepted_events=len(events), incidents=incidents,
-        diagnosis=diagnose(events, incidents), manifest=manifest,
-        processing_ms=round((time.perf_counter() - started) * 1000, 2), request_id=request.state.request_id)
+    return IngestResponse(
+        accepted_events=len(events),
+        incidents=incidents,
+        diagnosis=diagnose(events, incidents),
+        manifest=manifest,
+        processing_ms=round((time.perf_counter() - started) * 1000, 2),
+        request_id=request.state.request_id,
+    )
 
 
 @app.get("/api/v1/incidents", response_model=list[Incident], tags=["incidents"])
-def get_incidents(limit: int = 100, offset: int = 0, severity: Severity | None = None,
-    status: IncidentStatus | None = None) -> list[Incident]:
+def get_incidents(
+    limit: int = 100,
+    offset: int = 0,
+    severity: Severity | None = None,
+    status: IncidentStatus | None = None,
+) -> list[Incident]:
     return service.store.list_incidents(min(max(limit, 1), 500), max(offset, 0), severity, status)
 
 
